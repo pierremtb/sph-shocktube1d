@@ -17,10 +17,10 @@ void computeL(int particlesCount, vector<double>& L, vector<double>& density, ve
         int j = pairJ[k];
 
         // Calculating constant terms
-        double Pij = -(pressure[i]/(density[i]*density[i]) + pressure[j]/(density[j]*density[j]));
+        double Pij = (pressure[i]/(density[i]*density[i]) + pressure[j]/(density[j]*density[j]));
         
         // Wrapping up for both particles, remembering dwdx_ij = -dwdx_ji
-        L[i] += dw[i] * Pij * mass;
-        L[j] -= dw[i] * Pij * mass;
+        L[i] += dw[k] * Pij * mass;
+        L[j] -= dw[k] * Pij * mass;
     }
 }

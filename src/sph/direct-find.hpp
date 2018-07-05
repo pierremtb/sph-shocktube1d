@@ -11,7 +11,7 @@ void doDirectFind(int particlesCount, int& niac, vector<int>& pairI, vector<int>
                 // Checking smoothing length
                 double r = position[i] - position[j];
 
-                if (fabs(r) < 2 * h) {
+                if (fabs(r) < 4 * h) {
                     
                     // Increasing the number of interacting pairs
                     niac++;
@@ -21,13 +21,14 @@ void doDirectFind(int particlesCount, int& niac, vector<int>& pairI, vector<int>
                     pairJ.push_back(j);
 
                     // Computing smoothing kernel and derivative
-                    kernels::Result1D kernel = kernels::splineCubic(r, h);
+                    kernels::Result1D kernel = kernels::yang(r, h);
+                    // kernels::Result1D kernel = kernels::splineCubic(r, h);
                     w.push_back(kernel.w);
                     dw.push_back(kernel.dw);
                 }
             }
         }
                     
-        // Getting the w0 term
+        // Getting the w0 term
         w0 = kernels::splineCubic(0, h).w;
 }

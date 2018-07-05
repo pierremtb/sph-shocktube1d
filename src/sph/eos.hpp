@@ -6,6 +6,6 @@ void computePressure(int particlesCount, vector<double>& density, vector<double>
     for (int i = 0; i < particlesCount; i++) {
 
         // Equation of state p = rho.u.(gamma - 1)
-        pressure[i] = density[i] * energy[i] * (gamma - 1);
+        pressure[i] = density[i] * energy[i] * (gamma - 1.0);
     }
 }

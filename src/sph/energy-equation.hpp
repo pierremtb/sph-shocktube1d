@@ -17,10 +17,10 @@ void computeH(int particlesCount, vector<double>& H, vector<double>& density, ve
         int j = pairJ[k];
 
         // Calculating constant terms
-        double PVij = 0.5 * (pressure[i]/(density[i]*density[i]) + pressure[j]/(density[j]*density[j])) * (velocity[i] - velocity[j]);
+        double PVij = -0.5 * (pressure[i]/(density[i]*density[i]) + pressure[j]/(density[j]*density[j])) * (velocity[i] - velocity[j]);
         
         // Wrapping up for both particles, remembering dwdx_ij = -dwdx_ji
-        H[i] += dw[i] * PVij * mass;
-        H[j] -= dw[i] * PVij * mass;
+        H[i] += dw[k] * PVij * mass;
+        H[j] += dw[k] * PVij * mass;
     }
 }

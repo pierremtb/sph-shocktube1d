@@ -9,33 +9,12 @@ namespace kernels {
     };
 
     struct Result1D {
-       double w = 0;
-       double dw = 0;
+       double w = 0.0;
+       double dw = 0.0;
     };
 
     const float PI = 3.14159;
 
-    double yang(double r, double h)  {
-        double k = 2.0;
-        if (fabs(r) < 2.0 * h) {
-            return (4.0 * cos(PI/(2.0*h) * r) + cos(PI/h * r) + 3.0) * 1.0/(6.0*k*h);
-        }
-        return 0;
-    }
-
-    Result2D yang(double x, double y, double r, double h) {
-        Result2D res;
-        double q = fabs(r) / h;
-        double k = 2.0;
-        double sig = PI/((3*PI*PI-16)*(k*h)*(k*h));
-        if (q <= 2.0) {
-            res.w = (4 * cos(PI/2*q) + cos(PI * q) + 3) * sig;
-            double derConst = (2 * sig * PI / (h * sqrt(x*x + y*y))) * (2*sin(PI)/2*q + sin(PI*q));
-            res.dwdx = x * derConst;
-            res.dwdy = y * derConst;
-        }
-        return res;
-    }
 
     double wendlandC2(double r, double h) {
         double q = fabs(r) / h;
@@ -61,18 +40,62 @@ namespace kernels {
         return 0;
     }
 
+    Result1D yang(double r, double h)  {
+        Result1D res;
+        double k = 2.0;
+        if (fabs(r) < 2.0 * h) {
+            res.w = (4.0 * cos(PI/(2.0*h) * r) + cos(PI/h * r) + 3.0) * 1.0/(6.0*k*h);
+            res.dw = (-r/fabs(r)*4.0 * PI/(2.0*h)*sin(PI/(2.0*h) * r) - r/fabs(r) * PI/(h)*sin(PI/h * r)) * 1.0/(6.0*k*h);
+        }
+        return res;
+    }
+
+    // Result1D yang(double x, double h) {
+    //     Result2D res;e
+    //     double q = fabs(r) / h;
+    //     double k = 2.0;
+    //     double sig = PI/((3*PI*PI-16)*(k*h)*(k*h));
+    //     if (q <= 2.0) {
+    //         res.w = (4 * cos(PI/2*q) + cos(PI * q) + 3) * sig;
+    //         double derConst = (2 * sig * PI / (h * sqrt(x*x + y*y))) * (2*sin(PI)/2*q + sin(PI*q));
+    //         res.dwdx = x * derConst;
+    //         res.dwdy = y * derConst;
+    //     }
+    //     return res;
+    // }
+
+    Result2D yang(double x, double y, double r, double h) {
+        Result2D res;
+        double q = fabs(r) / h;
+        double k = 2.0;
+        double sig = PI/((3*PI*PI-16)*(k*h)*(k*h));
+        if (q <= 2.0) {
+            res.w = (4 * cos(PI/2*q) + cos(PI * q) + 3) * sig;
+            double derConst = (2 * sig * PI / (h * sqrt(x*x + y*y))) * (2*sin(PI)/2*q + sin(PI*q));
+            res.dwdx = x * derConst;
+            res.dwdy = y * derConst;
+        }
+        return res;
+    }
+
     Result1D splineCubic(double r, double h) {
         Result1D res;
         double q = fabs(r / h);
-        double sig = 2/(3.0*h);
+        double sig = 2.0/(3.0*h);
         if (q <= 1.0) {
-            res.w = (1 - 1.5 * q*q + 0.75 * q*q*q) * sig;
-            res.dw = (-3.0 * q * (1 - 0.5 * q) + 0.75 * q*q) * sig;
-            if (r < 0) res.dw *= -1;
-        } else if (q <= 2.0) {
+            res.w = (1.0 - 1.5 * q*q + 0.75 * q*q*q) * sig;
+            res.dw = (r/fabs(r)) * (2.0 * q - (3.0/2.0) * q * q) * (1.0/(h*h)) ;//(-3.0 * q * (1 - 0.5 * q) + 0.75 * q*q) * sig *(1.0);
+            //if (r < 0) res.dw *= -1;
+        }
+        else if ((q <= 2.0)&&(q>1.0)) {
             res.w = 0.25 * pow(2 - q, 3) * sig;
-            res.dw = -0.75 * pow(2 - q, 2) * sig;
-            if (r < 0) res.dw *= -1;
+            res.dw = (r/fabs(r)) * (0.5 * pow(q-2,2))* (1.0/(h*h)) ;// -0.75 * pow(2 - q, 2) * sig * (1.0);
+            //if (r < 0) res.dw *= -1;
+        }
+        if(r == 0.0)
+        {
+            res.w = 2.0/(3.0*h);
+            res.dw = 0.0;
         }
         return res;
     }

@@ -6,6 +6,7 @@
 #include "eos.hpp"
 #include "linear-momentum.hpp"
 #include "energy-equation.hpp"
+#include "artificial_viscosity.hpp"
 
 using namespace std;
 
@@ -25,8 +26,10 @@ void doSingleStep(
         // Preparing
         vector<int> pairI, pairJ;
         vector<double> w, dw;
+        vector <double> art_L(particlesCount);
+        vector <double> art_H(particlesCount);
         int niac = 0;
-        double w0 = 0;
+        double w0 = 0.0;
 
         // 1
         doDirectFind(particlesCount, niac, pairI, pairJ, w0, position, w, dw, h);
@@ -42,6 +45,20 @@ void doSingleStep(
 
         // 5
         computeH(particlesCount, H, density, velocity, pressure, dw, pairI, pairJ, niac, mass);
+
+        // 6
+        art_force(particlesCount,niac,pairI,pairJ,position,velocity,art_L,art_H,h,mass,density,pressure,dw);
+
+        for(int k; k < particlesCount; k++)
+        {
+            L[k] = L[k] - art_L[k];
+            H[k] = H[k] - art_H[k];
+        }
+
+        w.clear();
+        dw.clear();
+        pairI.clear();
+        pairJ.clear();
 
     }
 

@@ -31,15 +31,16 @@ const double RIGHT_PRESSURE = 0.1795;
 const double PARTICLE_MASS = 0.001875;
 const double GAMMA = 1.4;
 
-const double HSML = 0.015;
-const double KAPPA = 2;
+const double DX = 0.6/80.0;
+const double HSML = 2.0 * DX;
+//const double KAPPA = 2;
 
 const unsigned int TIME_STEPS = 40;
 const double TIME_DELTA = 0.005;
 
 int main()
 {
-    // TESTING KERNEL
+    // TESTING KERNEL
     
     // cout << "x,w,dwdx" <<endl;
     // for (int i = 0; i<PARTICLES_COUNT; i++) {
@@ -69,14 +70,14 @@ int main()
     // INITIALIZATION
 
     for (int i = 0; i < PARTICLES_COUNT; i++) {
-        if (i < LEFT_PARTICLES_COUNT) {
-            position[i] = fabs(LEFT_MAX - LEFT_MIN) / (LEFT_PARTICLES_COUNT - 1) * i + LEFT_MIN;
+        if (i < 320) {
+            position[i] = i * (DX/4.0) - 0.6 + DX/4.0;
             density[i] = LEFT_DENSITY;
             velocity[i] = LEFT_VELOCITY;
             energy[i] = LEFT_ENERGY;
             pressure[i] = LEFT_PRESSURE;
         } else {
-            position[i] = fabs(RIGHT_MAX - RIGHT_MIN) / (RIGHT_PARTICLES_COUNT - 1) * (i - LEFT_PARTICLES_COUNT) + RIGHT_MIN;
+            position[i] = (i-320) * DX + position[319] + 0.5 * DX;
             density[i] = RIGHT_DENSITY;
             velocity[i] = RIGHT_VELOCITY;
             energy[i] = RIGHT_ENERGY;
@@ -95,29 +96,33 @@ int main()
 
     // SIMULATION STEPS
 
+    int N_block = 20; // fixed particles.
+
     while (iteration <= TIME_STEPS) {
         vector<double> velocityMin(PARTICLES_COUNT);
         vector<double> energyMin(PARTICLES_COUNT);
 
         // First LF integration
         if (iteration > 1) {
-            velocityMin = velocity;
-            energyMin = energy;
+            //velocityMin = velocity;
+            //energyMin = energy;
 
-            for (int i = 0; i < PARTICLES_COUNT; i++) {
-                velocity[i] += TIME_DELTA * L[i] / 2;
-                energy[i] += TIME_DELTA * H[i] / 2;
+            for (int i = N_block; i < PARTICLES_COUNT - N_block; i++) {
+                velocityMin[i] = velocity[i];
+                energyMin[i]=energy[i];
+                velocity[i] += TIME_DELTA * L[i]/2.0;
+                energy[i] += TIME_DELTA * H[i]/2.0;
             }
         }
 
-        // SPH Single Step
+        // SPH Single Step
         doSingleStep(PARTICLES_COUNT, position, velocity, density, energy, pressure, L, H, PARTICLE_MASS, GAMMA, HSML);
 
         // Second LF integration
-        for (int i = 0; i < PARTICLES_COUNT; i++) {
+        for (int i = N_block; i < PARTICLES_COUNT - N_block; i++) {
             if (iteration == 1) {
-                velocity[i] += TIME_DELTA * L[i] / 2;
-                energy[i] += TIME_DELTA * H[i] / 2;
+                velocity[i] += TIME_DELTA * L[i]/2.0;
+                energy[i] += TIME_DELTA * H[i]/2.0;
 
                 position[i] += TIME_DELTA * velocity[i];
             } else {
